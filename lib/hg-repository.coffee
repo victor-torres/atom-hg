@@ -144,6 +144,9 @@ class HgRepository
 
   # Slash win32 path
   slashPath: (path) ->
+    if path.indexOf('..') is 0
+      path = path.replace('..', '')
+
     return path unless path
     if process.platform is 'win32'
       return path.replace(/\\/g, '/')
@@ -244,7 +247,7 @@ class HgRepository
   #
   # Returns a {Boolean}.
   # isPathIgnored: (path) -> @isStatusIgnored(@getPathStatus(path))
-  isPathIgnored: (path) -> @cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
+  isPathIgnored: (path) -> false #@cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
 
   # Public: Get the status of a directory in the repository's working directory.
   #
