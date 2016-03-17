@@ -76,8 +76,6 @@ class Repository
     hasChanged = false
     revision = @getHgWorkingCopyRevision()
     if revision?
-      # remove modified, switched and partial infos from revision number
-      revision = revision.replace(/[MSP]/gi, '')
       if revision != @revision
         @revision = revision
         hasChanged = true
@@ -95,7 +93,8 @@ class Repository
     return hasChanged
 
   getShortHead: () ->
-    return @shortHead
+    branchFile = @rootPath + '/.hg/branch'
+    return fs.readFileSync branchFile, 'utf8'
 
   ###
   Section: TreeView Path Mercurial status

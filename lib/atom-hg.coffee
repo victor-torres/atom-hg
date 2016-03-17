@@ -1,7 +1,5 @@
 HgRepository = require './hg-repository'
 
-# @pathToRepository = {}
-
 module.exports =
   activate: ->
     console.log 'Activating atom-hg...'
