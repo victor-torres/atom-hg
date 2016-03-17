@@ -20,7 +20,7 @@ module.exports =
 
         repo = @pathToRepository[repositoryPath]
         unless repo
-          repo = HgRepository.open(repositoryPath, project: @project)
+          repo = HgRepository.open(repositoryPath, project: atom.project)
           return null unless repo
 
           # TODO: takes first repository only
