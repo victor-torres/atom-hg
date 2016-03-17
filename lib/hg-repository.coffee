@@ -145,7 +145,7 @@ class HgRepository
   # Slash win32 path
   slashPath: (path) ->
     return path unless path
-    if path.indexOf('..') is 0
+    if path && path.indexOf('..') is 0
       path = path.replace('..', '')
 
     if process.platform is 'win32'
