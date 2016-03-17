@@ -119,7 +119,7 @@ class HgRepository
   # Public: A {String} indicating the type of version control system used by
   # this repository.
   #
-  # Returns `"svn"`.
+  # Returns `"hg"`.
   getType: -> 'hg'
 
   # Public: Returns the {String} path of the repository.
@@ -191,7 +191,7 @@ class HgRepository
   #   * `behind` The {Number} of commits behind.
   getCachedUpstreamAheadBehindCount: (path) -> null
 
-  # Public: Returns the svn property value specified by the key.
+  # Public: Returns the hg property value specified by the key.
   #
   # * `path` An optional {String} path in the repository to get this information
   #   for, only needed if the repository has submodules.
@@ -301,7 +301,7 @@ class HgRepository
   Section: Retrieving Diffs
   ###
 
-  # Retrieves the file content from latest svn revision and cache it.
+  # Retrieves the file content from latest hg revision and cache it.
   #
   # * `path` The {String} path for retrieving file contents.
   #
@@ -406,7 +406,7 @@ class HgRepository
   # last time the index was read.
   refreshIndex: -> null
 
-  # Refreshes the current svn status in an outside process and asynchronously
+  # Refreshes the current hg status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
     new Promise((resolve, reject) =>
