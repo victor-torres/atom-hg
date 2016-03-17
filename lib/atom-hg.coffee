@@ -1,3 +1,7 @@
+HgRepository = require './hg-repository'
+
+# @pathToRepository = {}
+
 module.exports =
   activate: ->
     console.log 'Activating atom-hg...'
@@ -13,8 +17,11 @@ module.exports =
           return null
 
         repositoryPath = repositoryRoot.getPath()
+        if !@pathToRepository
+          @pathToRepository = {}
+
         repo = @pathToRepository[repositoryPath]
-        return repo unless repo
+        unless repo
           repo = HgRepository.open(repositoryPath, project: @project)
           return null unless repo
 
@@ -24,6 +31,8 @@ module.exports =
           @pathToRepository[repositoryPath] = repo
           repo.refreshIndex()
           repo.refreshStatus()
+
+        return repo
     }
 
 findRepositoryRoot = (directory) ->
