@@ -297,23 +297,21 @@ class Repository
   # Returns a {Array} with path and statusnumber
   getRecursiveIgnoreStatuses: () ->
     try
-      xml = @hgCommand(['propget', '-R', '--xml', 'hg:ignore', @rootPath])
-      xmlDocument = $.parseXML(xml)
+      files = @hgCommand(['status', @rootPath])
     catch error
       @handleHgError(error)
       return null
 
     items = []
-    targets = $('properties > target', xmlDocument)
-    if targets
-      for target in targets
-        basePath = $(target).attr('path')
-        ignores = $('property', target).text()
-        if ignores
-          ignoredItems = ignores.split('\n')
-          for ignoredItem in ignoredItems
-            if (ignoredItem and ignoredItem.length > 0)
-              items.push(basePath + '/' + ignoredItem)
+    entries = files.split('\n')
+    if entries
+      for entry in entries
+        parts = entry.split(' ')
+        status = parts[0]
+        path = parts[1]
+        if path? && status?
+          if (status is 'I' || status is '?')
+            items.push(path.replace('..', ''))
 
     return items
 

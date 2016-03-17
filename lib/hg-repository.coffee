@@ -247,7 +247,7 @@ class HgRepository
   #
   # Returns a {Boolean}.
   # isPathIgnored: (path) -> @isStatusIgnored(@getPathStatus(path))
-  isPathIgnored: (path) -> false #@cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
+  isPathIgnored: (path) -> @cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
 
   # Public: Get the status of a directory in the repository's working directory.
   #
@@ -413,12 +413,14 @@ class HgRepository
   # updates the relevant properties.
   refreshStatus: ->
     new Promise((resolve, reject) =>
+      @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
+
       statusesDidChange = false
       if @getRepo().checkRepositoryHasChanged()
         @statuses = {}
         @cachedHgFileContent = {}
         # cache recursiv ignore statuses
-        @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
+        # @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
         statusesDidChange = true
 
       for {status, path} in @getRepo().getStatus()
