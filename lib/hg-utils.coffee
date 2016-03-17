@@ -333,8 +333,8 @@ class Repository
     if entries
       for entry in entries
         parts = entry.split(' ')
-        path = parts[0] || null
-        status = parts[1] || null
+        status = parts[0] || null
+        path = parts[1] || null
         if path? && status?
           items.push({
             'path': path
@@ -362,8 +362,8 @@ class Repository
     if entries
       for entry in entries
         parts = entry.split(' ')
-        path = parts[0] || null
-        status = parts[1] || null
+        status = parts[0] || null
+        path = parts[1] || null
         if status?
           status |= @mapHgStatus(status)
       return status
