@@ -94,6 +94,9 @@ class Repository
 
   getShortHead: () ->
     branchFile = @rootPath + '/.hg/branch'
+    if !fs.existsSync(branchFile)
+      return null
+
     return fs.readFileSync branchFile, 'utf8'
 
   ###
