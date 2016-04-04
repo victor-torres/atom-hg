@@ -313,7 +313,7 @@ class Repository
         status = parts[0]
         path = parts[1]
         if path? && status?
-          if (status is 'I' || status is '?')
+          if (status is 'I') # || status is '?')
             items.push(path.replace('..', ''))
 
     return items
@@ -414,6 +414,9 @@ class Repository
       fileContent = @hgCommand(params)
       return fileContent
     catch error
+      if /no such file in rev/.test(error)
+        return null
+
       @handleHgError(error)
       return null
 
