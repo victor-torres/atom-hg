@@ -288,8 +288,7 @@ class Repository
   # Returns a {String} with the current working copy revision
   getHgWorkingCopyRevision: () ->
     try
-      revisions = @hgCommand(['id', '-i', @rootPath])
-      return revisions.split(':')[1]
+      return @hgCommand(['id', '-i', @rootPath])
     catch error
       @handleHgError(error)
       return null
