@@ -13,6 +13,14 @@ Mercurial support for Atom text editor.
 - install it through Atom's package manager
 - run the command `atom .` inside your repository
 
+## Multi-platform
+
+Works on:
+
+- 🐧 Linux
+- 🍎 Mac OS X
+- 🏁 Windows
+
 ## Based on
 
 - Atom's Repository Provider Service
