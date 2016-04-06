@@ -251,7 +251,7 @@ class Repository
       if child.stdout
         throw new Error(child.stdout.toString())
 
-      throw new Error('Erro trying to execute Mercurial binary with params \'' + params + '\'')
+      throw new Error('Error trying to execute Mercurial binary with params \'' + params + '\'')
     return child.stdout.toString()
 
   handleHgError: (error) ->
