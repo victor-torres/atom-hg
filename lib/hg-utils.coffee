@@ -245,7 +245,13 @@ class Repository
       params = [params]
     child = spawnSync('hg', params)
     if child.status != 0
-      throw new Error(child.stderr.toString())
+      if child.stderr
+        throw new Error(child.stderr.toString())
+
+      if child.stdout
+        throw new Error(child.stdout.toString())
+
+      throw new Error('Erro trying to execute Mercurial binary with params \'' + params + '\'')
     return child.stdout.toString()
 
   handleHgError: (error) ->
