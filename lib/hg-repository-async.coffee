@@ -1,10 +1,9 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 
 HgUtils = require './hg-utils'
-HgRepositoryAsync = require './hg-repository-async'
 
 module.exports =
-class HgRepository
+class HgRepositoryAsync
 
   # devMode: atom.inDevMode()
   # workingDirectory: ''
@@ -24,7 +23,7 @@ class HgRepository
   @open: (path, options) ->
     return null unless path
     try
-      new HgRepository(path, options)
+      new HgRepositoryAsync(path, options)
     catch
       null
 
@@ -35,9 +34,6 @@ class HgRepository
     @repo = HgUtils.open(path)
     unless @repo?
       throw new Error("No Mercurial repository found searching path: #{path.path}")
-
-    # asyncOptions = _.clone(options)
-    @async = HgRepositoryAsync.open(path, options)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
@@ -127,8 +123,11 @@ class HgRepository
   getType: -> 'hg'
 
   # Public: Returns the {String} path of the repository.
+  _getPath: (repo) ->
+    @path ?= repo.getPath()
+
   getPath: ->
-    @path ?= @getRepo().getPath()
+    @getRepo.then(@_getPath.bind(this))
 
   # Public: Sets the {String} working directory path of the repository.
   setWorkingDirectory: (workingDirectory) ->
@@ -152,6 +151,9 @@ class HgRepository
     if path && path.indexOf('..') is 0
       path = path.replace('..', '')
 
+    if path && path.indexOf('/private') is 0
+      path = path.replace('/private', '')
+
     if process.platform is 'win32'
       return path.replace(/\\/g, '/')
     else
@@ -170,7 +172,9 @@ class HgRepository
   #   for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
-  getShortHead: (path) -> @getRepo(path).getShortHead()
+  getShortHead: (path) ->
+    return @getRepo(path).then((repo) ->
+      return repo.getShortHead())
 
   # Public: Is the given path a submodule in the repository?
   #
@@ -251,7 +255,12 @@ class HgRepository
   #
   # Returns a {Boolean}.
   # isPathIgnored: (path) -> @isStatusIgnored(@getPathStatus(path))
-  isPathIgnored: (path) -> @cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
+  _isPathIgnored: (path, resolve, reject) ->
+    resolve(@cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1)
+
+  isPathIgnored: (path) ->
+    return new Promise(@_isPathIgnored.bind(this, path)).then((response) ->
+      return response)
 
   # Public: Get the status of a directory in the repository's working directory.
   #
@@ -259,12 +268,16 @@ class HgRepository
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
-  getDirectoryStatus: (directoryPath) ->
+  _getDirectoryStatus: (directoryPath, resolve, reject) ->
     directoryPath = "#{@slashPath(directoryPath)}/"
     directoryStatus = 0
     for path, status of @statuses
       directoryStatus |= status if path.indexOf(directoryPath) is 0
-    return directoryStatus
+    resolve(directoryStatus)
+
+  getDirectoryStatus: (directoryPath) ->
+    return new Promise(@_getDirectoryStatus.bind(this, directoryPath)).then((status) ->
+      return status)
 
   # Public: Get the status of a single path in the repository.
   #
@@ -272,8 +285,7 @@ class HgRepository
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
-  getPathStatus: (path) ->
-    repo = @getRepo()
+  _getPathStatus: (path, repo) ->
     relativePath = @slashPath(path)
     currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getPathStatus(relativePath) ? 0
@@ -286,23 +298,34 @@ class HgRepository
       @emitter.emit 'did-change-status', {path, pathStatus}
     return pathStatus
 
+  getPathStatus: (path) ->
+    return @getRepo().then(@_getPathStatus.bind(this, path))
+
   # Public: Get the cached status for the given path.
   #
   # * `path` A {String} path in the repository, relative or absolute.
   #
   # Returns a status {Number} or null if the path is not in the cache.
-  getCachedPathStatus: (path) ->
+  _getCachedPathStatus: (path, resolve, reject) ->
     return unless path
-    return @statuses[@slashPath(path)]
+    resolve(@statuses[@slashPath(path)])
+
+  getCachedPathStatus: (path) ->
+    new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
+    return new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
+      return status)
 
   # Public: Returns true if the given status indicates modification.
-  isStatusModified: (status) -> @getRepo().isStatusModified(status)
+  isStatusModified: (status) ->
+    return HgUtils.isStatusModified(status)
 
   # Public: Returns true if the given status indicates a new path.
-  isStatusNew: (status) -> @getRepo().isStatusNew(status)
+  isStatusNew: (status) ->
+    return HgUtils.isStatusNew(status)
 
   # Public: Returns true if the given status is ignored.
-  isStatusIgnored: (status) -> @getRepo().isStatusIgnored(status)
+  isStatusIgnored: (status) ->
+    return HgUtils.isStatusIgnored(status)
 
   ###
   Section: Retrieving Diffs
@@ -313,12 +336,11 @@ class HgRepository
   # * `path` The {String} path for retrieving file contents.
   #
   # Returns a {String} with the filecontents
-  getCachedHgFileContent: (path) ->
-    slashedPath = @slashPath(path)
-    if (!@cachedHgFileContent[slashedPath])
-      repo = @getRepo()
-      @cachedHgFileContent[slashedPath] = repo.getHgCat(path)
-    return @cachedHgFileContent[slashedPath]
+  getCachedHgFileContent: (repo, path) ->
+    if (!@cachedHgFileContent[@slashPath(path)])
+      @cachedHgFileContent[@slashPath(path)] = repo.getHgCat(path)
+
+    return @cachedHgFileContent[@slashPath(path)]
 
   # Public: Retrieves the number of lines added and removed to a path.
   #
@@ -330,8 +352,11 @@ class HgRepository
   # Returns an {Object} with the following keys:
   #   * `added` The {Number} of added lines.
   #   * `deleted` The {Number} of deleted lines.
+  _getDiffStats: (path, repo) ->
+    return repo.getDiffStats(@slashPath(path), @getCachedHgFileContent(repo, path))
+
   getDiffStats: (path) ->
-    return @getRepo().getDiffStats(@slashPath(path), @getCachedHgFileContent(path))
+    return @getRepo().then(@_getDiffStats.bind(this, path))
 
   # Public: Retrieves the line diffs comparing the `HEAD` version of the given
   # path and the given text.
@@ -344,12 +369,14 @@ class HgRepository
   #   * `newStart` The line {Number} of the new hunk.
   #   * `oldLines` The {Number} of lines in the old hunk.
   #   * `newLines` The {Number} of lines in the new hunk
-  getLineDiffs: (path, text) ->
+  _getLineDiffs: (path, text, repo) ->
     # Ignore eol of line differences on windows so that files checked in as
     # LF don't report every line modified when the text contains CRLF endings.
     options = ignoreEolWhitespace: process.platform is 'win32'
-    repo = @getRepo()
-    return repo.getLineDiffs(@getCachedHgFileContent(path), text, options)
+    return repo.getLineDiffs(@getCachedHgFileContent(repo, path), text, options)
+
+  getLineDiffs: (path, text) ->
+    return @getRepo().then(@_getLineDiffs.bind(this, path, text))
 
   ###
   Section: Checking Out
@@ -403,11 +430,15 @@ class HgRepository
   checkoutHeadForEditor: (editor) -> null
 
  # Returns the corresponding {Repository}
-  getRepo: () ->
+  _getRepo: (resolve, reject) ->
     if @repo?
-      return @repo
+      resolve(@repo)
     else
-      throw new Error("Repository has been destroyed")
+      reject(Error("Repository has been destroyed"))
+
+  getRepo: () ->
+    return new Promise(@_getRepo.bind(this)).then((repo) ->
+      return repo)
 
   # Reread the index to update any values that have changed since the
   # last time the index was read.
@@ -415,23 +446,24 @@ class HgRepository
 
   # Refreshes the current hg status in an outside process and asynchronously
   # updates the relevant properties.
-  refreshStatus: ->
-    new Promise((resolve, reject) =>
-      @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
+  _refreshStatus: (repo) ->
+    @cachedIgnoreStatuses = repo.getRecursiveIgnoreStatuses()
 
-      statusesDidChange = false
-      if @getRepo().checkRepositoryHasChanged()
-        @statuses = {}
-        @cachedHgFileContent = {}
-        # cache recursiv ignore statuses
-        # @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
+    statusesDidChange = false
+    if repo.checkRepositoryHasChanged()
+      @statuses = {}
+      @cachedHgFileContent = {}
+      # cache recursiv ignore statuses
+      # @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
+      statusesDidChange = true
+
+    for {status, path} in repo.getStatus()
+      slashedPath = @slashPath(path)
+      if @statuses[slashedPath] != status
+        @statuses[slashedPath] = status
         statusesDidChange = true
 
-      for {status, path} in @getRepo().getStatus()
-        slashedPath = @slashPath(path)
-        if @statuses[slashedPath] != status
-          @statuses[slashedPath] = status
-          statusesDidChange = true
+    if statusesDidChange then @emitter.emit 'did-change-statuses'
 
-      if statusesDidChange then @emitter.emit 'did-change-statuses'
-    )
+  refreshStatus: ->
+    return @getRepo().then(@_refreshStatus.bind(this))

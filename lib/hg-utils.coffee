@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 util = require 'util'
 urlParser = require 'url'
-$ = require 'jquery'
 {spawnSync} = require 'child_process'
 diffLib = require 'jsdifflib'
 
@@ -275,20 +274,6 @@ class Repository
       @handleHgError(error)
       return null
 
-  # Returns on success an hg-info object. Otherwise null.
-  #
-  # Returns a {Object} with data from `hg info` command
-  # getHgInfo: () ->
-  #   try
-  #     xml = @hgCommand(['info', '--xml', @rootPath])
-  #     xmlDocument = $.parseXML(xml)
-  #     return {
-  #       url: $('info > entry > url', xmlDocument).text()
-  #     }
-  #   catch error
-  #     @handleHgError(error)
-  #     return null
-
   # Returns on success the current working copy revision. Otherwise null.
   #
   # Returns a {String} with the current working copy revision
@@ -426,6 +411,22 @@ class Repository
       return null
 
 
+exports.isStatusModified = (status) ->
+  return (status & modifiedStatusFlags) > 0
+
+exports.isStatusNew = (status) ->
+  return (status & newStatusFlags) > 0
+
+exports.isStatusDeleted = (status) ->
+  return (status & deletedStatusFlags) > 0
+
+exports.isStatusIgnored = (status) ->
+  return (status & statusIgnored) > 0
+
+exports.isStatusStaged = (status) ->
+  return (status & indexStatusFlags) > 0
+
+
 # creates and returns a new {Repository} object if hg-binary could be found
 # and several infos from are successfully read. Otherwise null.
 #
@@ -442,3 +443,18 @@ openRepository = (repositoryPath) ->
 
 exports.open = (repositoryPath) ->
   return openRepository(repositoryPath)
+
+
+openRepositoryAsync = (repositoryPath) ->
+  return new Promise((resolve, reject) ->
+    repository = new Repository(repositoryPath)
+    if repository.checkBinaryAvailable()
+      resolve(repository)
+    else
+      reject(null)
+  )
+
+
+exports.openAsync = (repositoryPath) ->
+  return openRepositoryAsync(repositoryPath).then((repo) ->
+    return repo)
