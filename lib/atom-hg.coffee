@@ -1,43 +1,11 @@
-HgRepository = require './hg-repository'
+HgRepositoryProvider = require './hg-repository-provider'
 
 module.exports =
   activate: ->
     console.log 'Activating atom-hg...'
 
+  deactivate: ->
+    console.log 'Deactivating atom-hg...'
+
   getRepositoryProviderService: ->
-    {
-      repositoryForDirectory: (directory) ->
-        console.log 'Not supported yet.'
-
-      repositoryForDirectorySync: (directory) ->
-        repositoryRoot = findRepositoryRoot(directory)
-        unless repositoryRoot
-          return null
-
-        repositoryPath = repositoryRoot.getPath()
-        if !@pathToRepository
-          @pathToRepository = {}
-
-        repo = @pathToRepository[repositoryPath]
-        unless repo
-          repo = HgRepository.open(repositoryPath, project: atom.project)
-          return null unless repo
-
-          # TODO: takes first repository only
-          repo.setWorkingDirectory(directory.getPath())
-          repo.onDidDestroy(=> delete @pathToRepository[repositoryPath])
-          @pathToRepository[repositoryPath] = repo
-          repo.refreshIndex()
-          repo.refreshStatus()
-
-        return repo
-    }
-
-findRepositoryRoot = (directory) ->
-  hgDir = directory.getSubdirectory('.hg')
-  if hgDir.existsSync?()
-    return directory
-  else if directory.isRoot()
-    return null
-  else
-    findRepositoryRoot(directory.getParent())
+    new HgRepositoryProvider(atom.project)
