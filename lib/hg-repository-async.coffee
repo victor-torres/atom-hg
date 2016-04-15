@@ -151,11 +151,9 @@ class HgRepositoryAsync
     if path && path.indexOf('..') is 0
       path = path.replace('..', '')
 
-    console.log 'path 1', path
     if path && path.indexOf('/private') is 0
       path = path.replace('/private', '')
 
-    console.log 'path 2', path
     if process.platform is 'win32'
       return path.replace(/\\/g, '/')
     else
@@ -176,7 +174,6 @@ class HgRepositoryAsync
   # Returns a {String}.
   getShortHead: (path) ->
     return @getRepo(path).then((repo) ->
-      console.log 'getShortHead'
       return repo.getShortHead())
 
   # Public: Is the given path a submodule in the repository?
@@ -259,11 +256,9 @@ class HgRepositoryAsync
   # Returns a {Boolean}.
   # isPathIgnored: (path) -> @isStatusIgnored(@getPathStatus(path))
   _isPathIgnored: (path, resolve, reject) ->
-    console.log '_isPathIgnored', path
     resolve(@cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1)
 
   isPathIgnored: (path) ->
-    console.log 'isPathIgnored', path
     return new Promise(@_isPathIgnored.bind(this, path)).then((response) ->
       return response)
 
@@ -274,7 +269,6 @@ class HgRepositoryAsync
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   _getDirectoryStatus: (directoryPath, resolve, reject) ->
-    console.log 'getDirectoryStatus'
     directoryPath = "#{@slashPath(directoryPath)}/"
     directoryStatus = 0
     for path, status of @statuses
@@ -292,7 +286,6 @@ class HgRepositoryAsync
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   _getPathStatus: (path, repo) ->
-    console.log '_getPathStatus'
     relativePath = @slashPath(path)
     currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getPathStatus(relativePath) ? 0
@@ -306,7 +299,6 @@ class HgRepositoryAsync
     return pathStatus
 
   getPathStatus: (path) ->
-    console.log 'getPathStatus'
     return @getRepo().then(@_getPathStatus.bind(this, path))
 
   # Public: Get the cached status for the given path.
@@ -315,29 +307,24 @@ class HgRepositoryAsync
   #
   # Returns a status {Number} or null if the path is not in the cache.
   _getCachedPathStatus: (path, resolve, reject) ->
-    console.log 'getCachedPathStatus', path
     return unless path
     resolve(@statuses[@slashPath(path)])
 
   getCachedPathStatus: (path) ->
     new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
-      console.log status)
     return new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
       return status)
 
   # Public: Returns true if the given status indicates modification.
   isStatusModified: (status) ->
-    console.log 'isStatusModified', HgUtils.isStatusModified(status)
     return HgUtils.isStatusModified(status)
 
   # Public: Returns true if the given status indicates a new path.
   isStatusNew: (status) ->
-    console.log 'isStatusNew', HgUtils.isStatusNew(status)
     return HgUtils.isStatusNew(status)
 
   # Public: Returns true if the given status is ignored.
   isStatusIgnored: (status) ->
-    console.log 'isStatusIgnored', HgUtils.isStatusIgnored(status)
     return HgUtils.isStatusIgnored(status)
 
   ###
@@ -472,7 +459,6 @@ class HgRepositoryAsync
 
     for {status, path} in repo.getStatus()
       slashedPath = @slashPath(path)
-      console.log status, path
       if @statuses[slashedPath] != status
         @statuses[slashedPath] = status
         statusesDidChange = true
