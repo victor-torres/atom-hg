@@ -311,9 +311,8 @@ class HgRepositoryAsync
     resolve(@statuses[@slashPath(path)])
 
   getCachedPathStatus: (path) ->
-    new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
-      return new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
-        return status))
+    return new Promise(@_getCachedPathStatus.bind(this, path)).then((status) ->
+      return status)
 
   # Public: Returns true if the given status indicates modification.
   isStatusModified: (status) ->
