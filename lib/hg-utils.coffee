@@ -426,6 +426,34 @@ class Repository
       return null
 
 
+isStatusModified: (status=0) ->
+  (status & modifiedStatusFlags) > 0
+
+isPathModified: (path) ->
+  @isStatusModified(@getPathStatus(path))
+
+isStatusNew: (status=0) ->
+  (status & newStatusFlags) > 0
+
+isPathNew: (path) ->
+  @isStatusNew(@getPathStatus(path))
+
+isStatusDeleted: (status=0) ->
+  (status & deletedStatusFlags) > 0
+
+isPathDeleted: (path) ->
+  @isStatusDeleted(@getPathStatus(path))
+
+isPathStaged: (path) ->
+  @isStatusStaged(@getPathStatus(path))
+
+isStatusIgnored: (status=0) ->
+  (status & statusIgnored) > 0
+
+isStatusStaged: (status=0) ->
+  (status & indexStatusFlags) > 0
+
+
 # creates and returns a new {Repository} object if hg-binary could be found
 # and several infos from are successfully read. Otherwise null.
 #
@@ -442,3 +470,17 @@ openRepository = (repositoryPath) ->
 
 exports.open = (repositoryPath) ->
   return openRepository(repositoryPath)
+
+
+openRepositoryAsync = (repositoryPath) ->
+  return new Promise((resolve, reject) ->
+    repository = new Repository(repositoryPath)
+    if repository.checkBinaryAvailable()
+      resolve(repository)
+    else
+      reject(null)
+  )
+
+
+exports.openAsync = (repositoryPath) ->
+  return openRepositoryAsync(repositoryPath)

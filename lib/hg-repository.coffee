@@ -1,6 +1,7 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 
 HgUtils = require './hg-utils'
+HgRepositoryAsync = require './hg-repository-async'
 
 module.exports =
 class HgRepository
@@ -34,6 +35,9 @@ class HgRepository
     @repo = HgUtils.open(path)
     unless @repo?
       throw new Error("No Mercurial repository found searching path: #{path.path}")
+
+    # asyncOptions = _.clone(options)
+    @async = HgRepositoryAsync.open(path, options)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
