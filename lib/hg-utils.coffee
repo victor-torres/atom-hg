@@ -316,10 +316,10 @@ class Repository
       for entry in entries
         parts = entry.split(' ')
         status = parts[0]
-        path = parts[1]
-        if path? && status?
+        pathPart = parts[1]
+        if pathPart? && status?
           if (status is 'I') # || status is '?')
-            items.push(path.replace('..', ''))
+            items.push(pathPart.replace('..', ''))
 
     return items
 
@@ -340,10 +340,10 @@ class Repository
       for entry in entries
         parts = entry.split(' ')
         status = parts[0]
-        path = parts[1]
-        if path? && status?
+        pathPart = parts[1]
+        if pathPart? && status?
           items.push({
-            'path': path
+            'path': pathPart
             'status': @mapHgStatus(status)
           })
 
@@ -370,7 +370,7 @@ class Repository
       for entry in entries
         parts = entry.split(' ')
         status = parts[0]
-        path = parts[1]
+        pathPart = parts[1]
         if status?
           path_status |= @mapHgStatus(status)
       return path_status
