@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 util = require 'util'
 urlParser = require 'url'
-$ = require 'jquery'
 {spawnSync} = require 'child_process'
 diffLib = require 'jsdifflib'
 
@@ -275,20 +274,6 @@ class Repository
       @handleHgError(error)
       return null
 
-  # Returns on success an hg-info object. Otherwise null.
-  #
-  # Returns a {Object} with data from `hg info` command
-  # getHgInfo: () ->
-  #   try
-  #     xml = @hgCommand(['info', '--xml', @rootPath])
-  #     xmlDocument = $.parseXML(xml)
-  #     return {
-  #       url: $('info > entry > url', xmlDocument).text()
-  #     }
-  #   catch error
-  #     @handleHgError(error)
-  #     return null
-
   # Returns on success the current working copy revision. Otherwise null.
   #
   # Returns a {String} with the current working copy revision
@@ -426,32 +411,20 @@ class Repository
       return null
 
 
-isStatusModified: (status=0) ->
-  (status & modifiedStatusFlags) > 0
+exports.isStatusModified = (status) ->
+  return (status & modifiedStatusFlags) > 0
 
-isPathModified: (path) ->
-  @isStatusModified(@getPathStatus(path))
+exports.isStatusNew = (status) ->
+  return (status & newStatusFlags) > 0
 
-isStatusNew: (status=0) ->
-  (status & newStatusFlags) > 0
+exports.isStatusDeleted = (status) ->
+  return (status & deletedStatusFlags) > 0
 
-isPathNew: (path) ->
-  @isStatusNew(@getPathStatus(path))
+exports.isStatusIgnored = (status) ->
+  return (status & statusIgnored) > 0
 
-isStatusDeleted: (status=0) ->
-  (status & deletedStatusFlags) > 0
-
-isPathDeleted: (path) ->
-  @isStatusDeleted(@getPathStatus(path))
-
-isPathStaged: (path) ->
-  @isStatusStaged(@getPathStatus(path))
-
-isStatusIgnored: (status=0) ->
-  (status & statusIgnored) > 0
-
-isStatusStaged: (status=0) ->
-  (status & indexStatusFlags) > 0
+exports.isStatusStaged = (status) ->
+  return (status & indexStatusFlags) > 0
 
 
 # creates and returns a new {Repository} object if hg-binary could be found
@@ -483,4 +456,5 @@ openRepositoryAsync = (repositoryPath) ->
 
 
 exports.openAsync = (repositoryPath) ->
-  return openRepositoryAsync(repositoryPath)
+  return openRepositoryAsync(repositoryPath).then((repo) ->
+    return repo)
