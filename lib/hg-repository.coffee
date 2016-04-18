@@ -82,6 +82,10 @@ class HgRepository
       @subscriptions.dispose()
       @subscriptions = null
 
+    if @async?
+      @async.destroy()
+      @async = null
+
   ###
   Section: Event Subscription
   ###
