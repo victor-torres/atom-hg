@@ -27,6 +27,14 @@ Works on:
 - Atom's Git Repository
 - Atom's Git Diff
 
+## Author
+
+- Victor Torres [@victor-torres](https://github.com/victor-torres)
+
+## Contributors
+
+- Steven Atkinson [@mrstebo](https://github.com/mrstebo)
+
 ## License
 
 MIT Copyright (c) 2016 Victor Torres
