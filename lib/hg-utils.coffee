@@ -242,6 +242,9 @@ class Repository
       params = []
     if !util.isArray(params)
       params = [params]
+
+    return '' unless @isCommandForRepo(params)
+
     child = spawnSync('hg', params)
     if child.status != 0
       if child.stderr
@@ -409,6 +412,21 @@ class Repository
 
       @handleHgError(error)
       return null
+
+  # This checks to see if the current params indicate whether we are working
+  # with the current repository.
+  #
+  # * `params` The params that are going to be sent to the hg command {Array}
+  #
+  # Returns a {Boolean} indicating if the rootPath was found in the params
+  isCommandForRepo: (params) ->
+    rootPath = @rootPath
+
+    paths = params.filter (param) ->
+      normalizedPath = path.normalize((param || ''))
+      return normalizedPath.startsWith(rootPath)
+
+    return paths.length > 0
 
 
 exports.isStatusModified = (status) ->
