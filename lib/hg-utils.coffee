@@ -245,7 +245,8 @@ class Repository
 
     return '' unless @isCommandForRepo(params)
 
-    child = spawnSync('hg', params)
+    options = { cwd: @rootPath }
+    child = spawnSync('hg', params, options)
     if child.status != 0
       if child.stderr
         throw new Error(child.stderr.toString())
