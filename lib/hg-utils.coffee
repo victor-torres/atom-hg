@@ -296,7 +296,7 @@ class Repository
       files = @hgCommand(['status', @rootPath])
     catch error
       @handleHgError(error)
-      return null
+      return []
 
     items = []
     entries = files.split('\n')
