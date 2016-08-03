@@ -2,6 +2,8 @@
 
 Mercurial support for Atom text editor.
 
+WARNING: this plugin may not work very well with Atom 1.9.0 beta.
+
 ## Features
 
 - line diff in text editor
