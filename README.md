@@ -34,6 +34,7 @@ Works on:
 ## Contributors
 
 - Steven Atkinson [@mrstebo](https://github.com/mrstebo)
+- [@mevatron](https://github.com/mevatron)
 
 ## License
 
