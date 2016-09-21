@@ -67,6 +67,9 @@ class Repository
       @binaryAvailable = false
     return @binaryAvailable
 
+  exists: () ->
+    return fs.existsSync(@rootPath + '/.hg')
+
   # Parses info from `hg info` and `hgversion` command and checks if repo infos have changed
   # since last check
   #
@@ -453,7 +456,7 @@ exports.isStatusStaged = (status) ->
 # Returns a new {Repository} object
 openRepository = (repositoryPath) ->
   repository = new Repository(repositoryPath)
-  if repository.checkBinaryAvailable()
+  if repository.checkBinaryAvailable() and repository.exists()
     return repository
   else
     return null

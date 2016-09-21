@@ -31,10 +31,10 @@ class HgRepository
   constructor: (path, options={}) ->
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
-
     @repo = HgUtils.open(path)
+
     unless @repo?
-      throw new Error("No Mercurial repository found searching path: #{path.path}")
+      throw new Error("No Mercurial repository found searching path: #{path}")
 
     # asyncOptions = _.clone(options)
     @async = HgRepositoryAsync.open(path, options)
