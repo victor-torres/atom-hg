@@ -438,4 +438,5 @@ class HgRepository
           statusesDidChange = true
 
       if statusesDidChange then @emitter.emit 'did-change-statuses'
+      resolve()
     )

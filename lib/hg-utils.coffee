@@ -248,7 +248,7 @@ class Repository
 
     return '' unless @isCommandForRepo(params)
 
-    child = spawnSync('hg', params)
+    child = spawnSync('hg', params, { cwd: @rootPath })
     if child.status != 0
       if child.stderr
         throw new Error(child.stderr.toString())
@@ -296,7 +296,7 @@ class Repository
   # Returns a {Array} with path and statusnumber
   getRecursiveIgnoreStatuses: () ->
     try
-      files = @hgCommand(['status', @rootPath])
+      files = @hgCommand(['status', @rootPath, "-A"])
     catch error
       @handleHgError(error)
       return []
@@ -312,7 +312,7 @@ class Repository
           if (status is 'I') # || status is '?')
             items.push(pathPart.replace('..', ''))
 
-    return items
+    (path.join @rootPath, item for item in items)
 
   # Returns on success an hg-status array. Otherwise null.
   # Array keys are paths, values {Number} representing the status

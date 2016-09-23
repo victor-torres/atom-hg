@@ -27,7 +27,8 @@ describe 'In a repo with some ignored files', ->
   describe 'with a tracked file', ->
     clean_file = path.join testRepo.fullPath(), 'clean_file'
     it 'should return isPathIgnored false', ->
-      assert.equal(repo.isPathIgnored(clean_file), false)
+      repo.refreshStatus().then ->
+        assert.equal(repo.isPathIgnored(clean_file), false)
 
-  after ->    
+  after ->
     testRepo.destroy()
