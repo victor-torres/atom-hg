@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs'
 exec = require('child_process').execSync
 
 module.exports =
@@ -9,6 +10,8 @@ module.exports =
     constructor: (@scenario) ->
 
     init: ->
+      if @exists()
+        @destroy()
       if isWindows
         exec 'powershell -file ' + path.join __dirname, @scenario + extension + ' ' + @fullPath()
       else
@@ -17,8 +20,11 @@ module.exports =
     fullPath: ->
       path.join __dirname, 'test_repo'
 
-    destroy: ->
-      if isWindows        
+    exists: () ->
+      fs.existsSync(@fullPath)
+
+    destroy: ->      
+      if isWindows
         exec 'powershell -command "remove-item -recurse -force ' + @fullPath() + '"'
       else
         exec 'rm -rf ' + @fullPath()

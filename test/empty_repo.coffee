@@ -4,11 +4,12 @@ HgRepository = require '../lib/hg-repository'
 TestRepository = require './testRepository'
 assert = require('chai').assert
 
-testRepo = new TestRepository 'empty_repo'
-before ->
-  testRepo.init()
-
 describe 'Constructing hg-repository', ->
+  testRepo = new TestRepository 'empty_repo'
+
+  before ->
+    testRepo.init()
+
   it 'should throw exception on nonexisting repository', ->
     assert.throws ->
       repo = new HgRepository (testRepo.fullPath() + "_not_exists")
@@ -18,5 +19,5 @@ describe 'Constructing hg-repository', ->
     repo = new HgRepository testRepo.fullPath()
     assert.ok repo
 
-after ->
-  testRepo.destroy()
+  after ->    
+    testRepo.destroy()
