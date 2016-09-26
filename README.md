@@ -35,6 +35,7 @@ Works on:
 
 - Steven Atkinson [@mrstebo](https://github.com/mrstebo)
 - [@mevatron](https://github.com/mevatron)
+- Tom Kemper [@TomKemperNL](https://github.com/TomKemperNL)
 
 ## License
 
