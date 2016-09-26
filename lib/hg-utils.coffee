@@ -67,6 +67,9 @@ class Repository
       @binaryAvailable = false
     return @binaryAvailable
 
+  exists: () ->
+    return fs.existsSync(@rootPath + '/.hg')
+
   # Parses info from `hg info` and `hgversion` command and checks if repo infos have changed
   # since last check
   #
@@ -245,7 +248,7 @@ class Repository
 
     return '' unless @isCommandForRepo(params)
 
-    child = spawnSync('hg', params)
+    child = spawnSync('hg', params, { cwd: @rootPath })
     if child.status != 0
       if child.stderr
         throw new Error(child.stderr.toString())
@@ -293,7 +296,7 @@ class Repository
   # Returns a {Array} with path and statusnumber
   getRecursiveIgnoreStatuses: () ->
     try
-      files = @hgCommand(['status', @rootPath])
+      files = @hgCommand(['status', @rootPath, "-A"])
     catch error
       @handleHgError(error)
       return []
@@ -309,7 +312,7 @@ class Repository
           if (status is 'I') # || status is '?')
             items.push(pathPart.replace('..', ''))
 
-    return items
+    (path.join @rootPath, item for item in items)
 
   # Returns on success an hg-status array. Otherwise null.
   # Array keys are paths, values {Number} representing the status
@@ -453,7 +456,7 @@ exports.isStatusStaged = (status) ->
 # Returns a new {Repository} object
 openRepository = (repositoryPath) ->
   repository = new Repository(repositoryPath)
-  if repository.checkBinaryAvailable()
+  if repository.checkBinaryAvailable() and repository.exists()
     return repository
   else
     return null
