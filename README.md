@@ -1,4 +1,4 @@
-# atom-hg
+# atom-hg ![https://travis-ci.org/victor-torres/atom-hg](https://travis-ci.org/victor-torres/atom-hg.svg?branch=master)
 
 Mercurial support for Atom text editor.
 
