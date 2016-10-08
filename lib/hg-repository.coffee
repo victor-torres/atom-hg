@@ -420,9 +420,8 @@ class HgRepository
   # Refreshes the current hg status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
-    new Promise((resolve, reject) =>
-      @cachedIgnoreStatuses = (@slashPath ignored for ignored in @getRepo().getRecursiveIgnoreStatuses())
-
+    @getRepo().getRecursiveIgnoreStatuses().then (allIgnored) =>
+      @cachedIgnoreStatuses = (@slashPath ignored for ignored in allIgnored)
       statusesDidChange = false
       if @getRepo().checkRepositoryHasChanged()
         @statuses = {}
@@ -438,5 +437,3 @@ class HgRepository
           statusesDidChange = true
 
       if statusesDidChange then @emitter.emit 'did-change-statuses'
-      resolve()
-    )
