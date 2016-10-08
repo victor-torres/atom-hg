@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 util = require 'util'
 urlParser = require 'url'
-{spawnSync} = require 'child_process'
+{spawnSync, exec} = require 'child_process'
 diffLib = require 'jsdifflib'
 
 ###
@@ -259,6 +259,30 @@ class Repository
       throw new Error('Error trying to execute Mercurial binary with params \'' + params + '\'')
     return child.stdout.toString()
 
+  hgCommandAsync: (params) ->
+    if !params
+      params = []
+    if !util.isArray(params)
+      params = [params]
+
+    return Promise.resolve('') unless @isCommandForRepo(params)
+
+    flatArgs = params.reduce (prev, next) ->
+      prev + " " + next
+    , ""
+    flatArgs = flatArgs.substring(1)
+
+    new Promise (resolve, reject) =>
+      opts =
+        cwd: @rootPath
+        maxBuffer: 50 * 1024 * 1024
+      child = exec 'hg ' + flatArgs, opts, (err, stdout, stderr) ->
+        if err
+          reject err
+        if stderr?.length > 0
+          reject stderr
+        resolve stdout
+
   handleHgError: (error) ->
     logMessage = true
     message = error.message
@@ -290,29 +314,22 @@ class Repository
       @handleHgError(error)
       return null
 
-  # Returns on success an hg-ignores array. Otherwise null.
-  # Array keys are paths, values {Number} representing the status
-  #
-  # Returns a {Array} with path and statusnumber
   getRecursiveIgnoreStatuses: () ->
-    try
-      files = @hgCommand(['status', @rootPath, "-A"])
-    catch error
-      @handleHgError(error)
-      return []
-
-    items = []
-    entries = files.split('\n')
-    if entries
-      for entry in entries
-        parts = entry.split(' ')
-        status = parts[0]
-        pathPart = parts[1]
-        if pathPart? && status?
-          if (status is 'I') # || status is '?')
-            items.push(pathPart.replace('..', ''))
-
-    (path.join @rootPath, item for item in items)
+    @hgCommandAsync(['status', @rootPath, "-i"]).then (files) =>
+      items = []
+      entries = files.split('\n')
+      if entries
+        for entry in entries
+          parts = entry.split(' ')
+          status = parts[0]
+          pathPart = parts[1]
+          if pathPart? && status?
+            if (status is 'I') # || status is '?')
+              items.push(pathPart.replace('..', ''))
+      (path.join @rootPath, item for item in items)
+    .catch (error) =>
+      @handleHgError error
+      []
 
   # Returns on success an hg-status array. Otherwise null.
   # Array keys are paths, values {Number} representing the status
@@ -334,7 +351,7 @@ class Repository
         pathPart = parts[1]
         if pathPart? && status?
           items.push({
-            'path': pathPart
+            'path': path.join @rootPath, pathPart
             'status': @mapHgStatus(status)
           })
 

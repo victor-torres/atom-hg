@@ -24,6 +24,20 @@ describe 'In a repo with some ignored files', ->
     it 'should return getPathStatus 0', ->
       assert.equal(repo.getPathStatus(ignored_file), 0)
 
+  describe 'with a modified file', ->
+    modifiedStatus = 1024
+    modified_file = path.join testRepo.fullPath(), 'modified_file'
+
+    it 'should count status as modified', ->
+      assert.equal repo.isStatusModified(modifiedStatus), true
+
+    it 'should return status modified', ->
+      assert.equal repo.isPathModified(modified_file), true
+
+    it 'should return cached status modified', ->
+      repo.refreshStatus().then ->
+        assert.equal repo.getCachedPathStatus(modified_file), modifiedStatus
+
   describe 'with a tracked file', ->
     clean_file = path.join testRepo.fullPath(), 'clean_file'
     it 'should return isPathIgnored false', ->
