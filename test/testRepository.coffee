@@ -21,7 +21,7 @@ module.exports =
       path.join __dirname, 'test_repo'
 
     exists: () ->
-      fs.existsSync(@fullPath)
+      fs.existsSync(@fullPath())
 
     destroy: ->
       if isWindows
