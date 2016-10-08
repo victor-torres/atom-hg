@@ -44,5 +44,11 @@ describe 'In a repo with some ignored files', ->
       repo.refreshStatus().then ->
         assert.equal(repo.isPathIgnored(clean_file), false)
 
+  describe 'with an untracked file', ->
+    untracked_file = path.join testRepo.fullPath(), 'untracked_file'
+    it 'should return isPathIgnored true', ->
+      repo.refreshStatus().then ->
+        assert.equal(repo.isPathIgnored(untracked_file), true)
+
   after ->
     testRepo.destroy()
