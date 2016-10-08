@@ -315,7 +315,7 @@ class Repository
       return null
 
   getRecursiveIgnoreStatuses: () ->
-    @hgCommandAsync(['status', @rootPath, "-A"]).then (files) =>
+    @hgCommandAsync(['status', @rootPath, "-i"]).then (files) =>
       items = []
       entries = files.split('\n')
       if entries
