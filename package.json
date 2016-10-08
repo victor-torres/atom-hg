@@ -27,9 +27,19 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "coffee-script": "^1.10.0",
+    "coffeelint": "^1.16.0",
     "mocha": "^3.0.2"
   },
   "scripts": {
-    "test": "mocha --compilers coffee:coffee-script/register"
+    "test": "npm run lint & npm run mocha",
+    "mocha": "mocha --compilers coffee:coffee-script/register",
+    "lint": "coffeelint lib test"
+  },
+  "coffeelintConfig": {
+    "max_line_length": {
+      "value": 100,
+      "level": "error",
+      "limitComments": true
+    }
   }
 }

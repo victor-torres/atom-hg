@@ -1,4 +1,4 @@
 global.window = {
-    addEventListener: ()->
-    removeEventListener: ()->
+  addEventListener: ()->
+  removeEventListener: ()->
 }

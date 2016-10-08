@@ -19,5 +19,5 @@ describe 'Constructing hg-repository', ->
     repo = new HgRepository testRepo.fullPath()
     assert.ok repo
 
-  after ->    
+  after ->
     testRepo.destroy()
