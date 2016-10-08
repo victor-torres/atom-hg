@@ -257,6 +257,8 @@ class HgRepository
   # isPathIgnored: (path) -> @isStatusIgnored(@getPathStatus(path))
   isPathIgnored: (path) -> @cachedIgnoreStatuses.indexOf(@slashPath(path)) != -1
 
+  isPathStaged: (path) -> @isStatusStaged(@getPathStatus(path))
+
   # Public: Get the status of a directory in the repository's working directory.
   #
   # * `path` The {String} path to check.
@@ -307,6 +309,9 @@ class HgRepository
 
   # Public: Returns true if the given status is ignored.
   isStatusIgnored: (status) -> @getRepo().isStatusIgnored(status)
+
+  # Public: Returns true if the given status is staged.
+  isStatusStaged: (status) -> @getRepo().isStatusStaged(status)
 
   ###
   Section: Retrieving Diffs

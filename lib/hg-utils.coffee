@@ -147,7 +147,7 @@ class Repository
     (status & statusIgnored) > 0
 
   isStatusStaged: (status=0) ->
-    (status & indexStatusFlags) > 0
+    (status & statusWorkingDirNew) == 0
 
 
   ###
@@ -462,7 +462,7 @@ exports.isStatusIgnored = (status) ->
   return (status & statusIgnored) > 0
 
 exports.isStatusStaged = (status) ->
-  return (status & indexStatusFlags) > 0
+  return (status & statusWorkingDirNew) == 0
 
 
 # creates and returns a new {Repository} object if hg-binary could be found

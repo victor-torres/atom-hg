@@ -326,6 +326,10 @@ class HgRepositoryAsync
   isStatusIgnored: (status) ->
     return HgUtils.isStatusIgnored(status)
 
+  # Public: Returns true if the given status is staged.
+  isStatusStaged: (status) ->
+    return HgUtils.isStatusStaged(status)
+
   ###
   Section: Retrieving Diffs
   ###
