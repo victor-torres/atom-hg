@@ -334,7 +334,7 @@ class Repository
         pathPart = parts[1]
         if pathPart? && status?
           items.push({
-            'path': pathPart
+            'path': path.join @rootPath, pathPart
             'status': @mapHgStatus(status)
           })
 
