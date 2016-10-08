@@ -421,7 +421,7 @@ class HgRepository
   # updates the relevant properties.
   refreshStatus: ->
     new Promise((resolve, reject) =>
-      @cachedIgnoreStatuses = (@slashPath ignored for ignored in @getRepo().getRecursiveIgnoreStatuses())
+      @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses().map(@slashPath)
 
       statusesDidChange = false
       if @getRepo().checkRepositoryHasChanged()

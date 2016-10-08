@@ -23,7 +23,7 @@ module.exports =
     exists: () ->
       fs.existsSync(@fullPath)
 
-    destroy: ->      
+    destroy: ->
       if isWindows
         exec 'powershell -command "remove-item -recurse -force ' + @fullPath() + '"'
       else
