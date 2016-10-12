@@ -31,10 +31,16 @@ describe 'In a repo with some ignored files', ->
     it 'should count status as modified', ->
       assert.equal repo.isStatusModified(modifiedStatus), true
 
-    it 'should return status modified', ->
+    it 'should return status staged', ->
+      assert.equal repo.isStatusStaged(modifiedStatus), true
+
+    it 'should return path staged', ->
+      assert.equal repo.isPathStaged(modified_file), true
+
+    it 'should return path modified', ->
       assert.equal repo.isPathModified(modified_file), true
 
-    it 'should return cached status modified', ->
+    it 'should return cached path status modified', ->
       repo.refreshStatus().then ->
         assert.equal repo.getCachedPathStatus(modified_file), modifiedStatus
 
@@ -43,6 +49,20 @@ describe 'In a repo with some ignored files', ->
     it 'should return isPathIgnored false', ->
       repo.refreshStatus().then ->
         assert.equal(repo.isPathIgnored(clean_file), false)
+
+    it 'should return isPathStaged true', ->
+      repo.refreshStatus().then ->
+        assert.equal(repo.isPathStaged(clean_file), true)
+
+  describe 'with an untracked file', ->
+    untrackedStatus = 128
+    untracked_file = path.join testRepo.fullPath(), 'untracked_file'
+    it 'should return status not staged', ->
+      assert.equal repo.isStatusStaged(untrackedStatus), false
+
+    it 'should return isPathStaged false', ->
+      repo.refreshStatus().then ->
+        assert.equal(repo.isPathStaged(untracked_file), false)
 
   after ->
     testRepo.destroy()
