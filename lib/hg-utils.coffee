@@ -268,6 +268,9 @@ class Repository
     return Promise.resolve('') unless @isCommandForRepo(params)
 
     flatArgs = params.reduce (prev, next) ->
+      if next.indexOf? and next.indexOf(' ') != -1
+        next = "\"" + next + "\""
+
       prev + " " + next
     , ""
     flatArgs = flatArgs.substring(1)
