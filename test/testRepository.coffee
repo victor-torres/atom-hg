@@ -18,7 +18,7 @@ module.exports =
       if isWindows
         command = 'powershell -file ' + fullScenario + ' ' + '"' + @fullPath() + '"'
       else
-        command = fullScenario + ' ' + @fullPath()
+        command = fullScenario + ' "' + @fullPath() + '"'
       exec command
 
     fullPath: ->
@@ -32,5 +32,5 @@ module.exports =
       if isWindows
         command = 'powershell -command "remove-item -recurse -force \'' + @fullPath() + '\'"'
       else
-        command = 'rm -rf ' + @fullPath()
+        command = 'rm -rf "' + @fullPath() + '"'
       exec command
