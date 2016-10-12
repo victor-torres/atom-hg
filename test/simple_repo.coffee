@@ -89,3 +89,31 @@ describe 'In a repo with spaces in the directory name', ->
 
   after ->
     testRepo.destroy()
+
+describe 'In a repo opened from a symbolic link', ->
+  testRepo = new TestRepository path.parse(__filename).name
+  repo = null
+  before ->
+    testRepo.init()
+
+  beforeEach ->
+    repo = new HgRepository (testRepo.fullPath() + ' symlink')
+
+  it 'should still return isPathIgnored true with real path', ->
+    # The path here does not include the 'symlink' suffix as tree-view and
+    # git-diff don't seem to include it when calling our repository methods.
+    # https://github.com/victor-torres/atom-hg/issues/18
+    ignored_file = path.join testRepo.fullPath(), 'ignored_file'
+    repo.refreshStatus().then ->
+      assert.equal(repo.isPathIgnored(ignored_file), true)
+
+  it 'should still return isPathIgnored true with symlink path', ->
+    # The path here does not include the 'symlink' suffix as tree-view and
+    # git-diff don't seem to include it when calling our repository methods.
+    # https://github.com/victor-torres/atom-hg/issues/18
+    ignored_file = path.join testRepo.fullPath() + ' symlink', 'ignored_file'
+    repo.refreshStatus().then ->
+      assert.equal(repo.isPathIgnored(ignored_file), true)
+
+  after ->
+    testRepo.destroy()

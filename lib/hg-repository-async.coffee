@@ -35,6 +35,8 @@ class HgRepositoryAsync
     unless @repo?
       throw new Error("No Mercurial repository found searching path: #{path.path}")
 
+    @symlink = HgUtils.resolveSymlink(path)
+
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
 
@@ -148,6 +150,9 @@ class HgRepositoryAsync
   # Slash win32 path
   slashPath: (path) ->
     return path unless path
+    if @symlink
+      path = path.replace(@path, @symlink)
+
     if path && path.indexOf('..') is 0
       path = path.replace('..', '')
 

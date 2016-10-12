@@ -499,3 +499,15 @@ openRepositoryAsync = (repositoryPath) ->
 exports.openAsync = (repositoryPath) ->
   return openRepositoryAsync(repositoryPath).then((repo) ->
     return repo)
+
+# Verifies if given path is a symbolic link.
+# Returns original path or null otherwise.
+resolveSymlink = (repositoryPath) ->
+  lstat = fs.lstatSync(repositoryPath)
+  unless lstat.isSymbolicLink()
+    return null
+
+  return fs.realpathSync(repositoryPath)
+
+exports.resolveSymlink = (repositoryPath) ->
+  return resolveSymlink(repositoryPath)
