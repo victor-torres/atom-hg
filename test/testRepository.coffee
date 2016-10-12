@@ -33,4 +33,5 @@ module.exports =
         command = 'powershell -command "remove-item -recurse -force \'' + @fullPath() + '\'"'
       else
         command = 'rm -rf "' + @fullPath() + '"'
+        command += '; rm -rf "' + @fullPath() + ' symlink"'
       exec command

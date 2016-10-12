@@ -1,6 +1,7 @@
 #!/bin/bash
 
 hg init "$1"
+ln -s "$1" "$1 symlink"
 cd "$1"
 
 files=("clean_file" "modified_file" "removed_file" "missing_file")
