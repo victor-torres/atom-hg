@@ -7,24 +7,30 @@ module.exports =
     isWindows = process.platform == 'win32'
     extension = if isWindows then '.ps1' else '.sh'
 
-    constructor: (@scenario) ->
+    constructor: (@scenario, @repoDir = 'test_repo') ->
 
     init: ->
       if @exists()
         @destroy()
+
+      command = undefined
+      fullScenario = path.join __dirname, @scenario + extension
       if isWindows
-        exec 'powershell -file ' + path.join __dirname, @scenario + extension + ' ' + @fullPath()
+        command = 'powershell -file ' + fullScenario + ' ' + '"' + @fullPath() + '"'
       else
-        exec path.join __dirname, @scenario + extension + ' ' + @fullPath()
+        command = fullScenario + ' "' + @fullPath() + '"'
+      exec command
 
     fullPath: ->
-      path.join __dirname, 'test_repo'
+      path.join __dirname, @repoDir
 
     exists: () ->
       fs.existsSync(@fullPath())
 
     destroy: ->
+      command = undefined
       if isWindows
-        exec 'powershell -command "remove-item -recurse -force ' + @fullPath() + '"'
+        command = 'powershell -command "remove-item -recurse -force \'' + @fullPath() + '\'"'
       else
-        exec 'rm -rf ' + @fullPath()
+        command = 'rm -rf "' + @fullPath() + '"'
+      exec command

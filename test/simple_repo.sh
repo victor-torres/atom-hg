@@ -1,6 +1,7 @@
 #!/bin/bash
-hg init $1
-cd $1
+
+hg init "$1"
+cd "$1"
 
 files=("clean_file" "modified_file" "removed_file" "missing_file")
 for f in ${files[*]}

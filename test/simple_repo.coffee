@@ -46,3 +46,26 @@ describe 'In a repo with some ignored files', ->
 
   after ->
     testRepo.destroy()
+
+describe 'In a repo with spaces in the directory name', ->
+  testRepo = new TestRepository path.parse(__filename).name, 'test repo'
+  repo = null
+  before ->
+    testRepo.init()
+
+  beforeEach ->
+    repo = new HgRepository testRepo.fullPath()
+
+  ###
+  Currently any error in hg-stat commands is caught and console.error logged,
+  but the promise is not rejected.
+  So we're testing for this issue by side-effect,
+  ideally we would just assert the promise resolved succesfully
+  ###
+  it 'should still return isPathIgnored true', ->
+    ignored_file = path.join testRepo.fullPath(), 'ignored_file'
+    repo.refreshStatus().then ->
+      assert.equal(repo.isPathIgnored(ignored_file), true)
+
+  after ->
+    testRepo.destroy()
