@@ -54,6 +54,14 @@ class Repository
 
   constructor: (repoRootPath) ->
     @rootPath = path.normalize(repoRootPath)
+    unless fs.existsSync(@rootPath)
+      return
+
+    lstat = fs.lstatSync(@rootPath)
+    unless lstat.isSymbolicLink()
+      return
+
+    @rootPath = fs.realpathSync(@rootPath)
 
   # Checks if there is a hg binary in the os searchpath and returns the
   # binary version string.
