@@ -94,12 +94,12 @@ describe 'In a repo opened from a symbolic link', ->
   testRepo = new TestRepository path.parse(__filename).name
   repo = null
   before ->
+    testRepo.init()
+
     isWindows = process.platform == 'win32'
     if isWindows
       this.skip()
       return
-
-    testRepo.init()
 
   beforeEach ->
     repo = new HgRepository (testRepo.fullPath() + ' symlink')
