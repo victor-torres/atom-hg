@@ -6,16 +6,15 @@ assert = require('chai').assert
 path = require 'path'
 exec = require('child_process').execSync
 
+isWindows = process.platform == 'win32'
+unless isWindows
+  return
+
 describe 'In a repository with a really long path', ->
   testRepo = new TestRepository path.parse(__filename).name
   repo = null
   before ->
     testRepo.init()
-
-    isWindows = process.platform == 'win32'
-    unless isWindows
-      this.skip()
-      return
 
   beforeEach ->
     repo = new HgRepository (testRepo.fullPath())
