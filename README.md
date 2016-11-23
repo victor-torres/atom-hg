@@ -6,7 +6,7 @@ Mercurial support for Atom text editor.
 
 - line diff in text editor
 - file diff in tree view
-- branch name in status bar
+- bookmark:branch or branch name in status bar
 
 ## How to use it
 
