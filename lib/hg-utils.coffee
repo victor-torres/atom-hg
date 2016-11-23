@@ -104,10 +104,18 @@ class Repository
 
   getShortHead: () ->
     branchFile = @rootPath + '/.hg/branch'
-    if !fs.existsSync(branchFile)
-      return 'default'
+    bookmarkFile = @rootPath + '/.hg/bookmarks.current'
+    prompt = ''
 
-    return fs.readFileSync branchFile, 'utf8'
+    if (!fs.existsSync(branchFile))
+      prompt = 'default'
+    else
+      prompt = fs.readFileSync branchFile, 'utf8'
+
+    if (fs.existsSync(bookmarkFile))
+      prompt = prompt + ':' + fs.readFileSync bookmarkFile, 'utf8'
+
+    return prompt
 
   ###
   Section: TreeView Path Mercurial status
