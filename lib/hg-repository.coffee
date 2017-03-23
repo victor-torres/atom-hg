@@ -1,7 +1,6 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 
 HgUtils = require './hg-utils'
-HgRepositoryAsync = require './hg-repository-async'
 
 module.exports =
 class HgRepository
@@ -38,9 +37,6 @@ class HgRepository
 
     @path = path
     @symlink = HgUtils.resolveSymlink(path)
-
-    # asyncOptions = _.clone(options)
-    @async = HgRepositoryAsync.open(path, options)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
@@ -84,10 +80,6 @@ class HgRepository
     if @subscriptions?
       @subscriptions.dispose()
       @subscriptions = null
-
-    if @async?
-      @async.destroy()
-      @async = null
 
   ###
   Section: Event Subscription
@@ -328,11 +320,16 @@ class HgRepository
   # * `path` The {String} path for retrieving file contents.
   #
   # Returns a {String} with the filecontents
-  getCachedHgFileContent: (path) ->
+  getCachedHgFileContent: (path) =>
     slashedPath = @slashPath(path)
+
+    @repo.getHgCatAsync(path).then (contents) =>
+      statusesDidChange = @cachedHgFileContent[slashedPath] != contents
+      @cachedHgFileContent[slashedPath] = contents
+      if statusesDidChange then @emitter.emit 'did-change-statuses'
+
     if (!@cachedHgFileContent[slashedPath])
-      repo = @getRepo()
-      @cachedHgFileContent[slashedPath] = repo.getHgCat(path)
+      return null
     return @cachedHgFileContent[slashedPath]
 
   # Public: Retrieves the number of lines added and removed to a path.
@@ -434,17 +431,18 @@ class HgRepository
     @getRepo().getRecursiveIgnoreStatuses().then (allIgnored) =>
       @cachedIgnoreStatuses = (@slashPath ignored for ignored in allIgnored)
       statusesDidChange = false
-      if @getRepo().checkRepositoryHasChanged()
-        @statuses = {}
-        @cachedHgFileContent = {}
-        # cache recursiv ignore statuses
-        # @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
-        statusesDidChange = true
-
-      for {status, path} in @getRepo().getStatus()
-        slashedPath = @slashPath(path)
-        if @statuses[slashedPath] != status
-          @statuses[slashedPath] = status
+      @getRepo().checkRepositoryHasChangedAsync().then (hasChanged) =>
+        if hasChanged
+          @statuses = {}
+          @cachedHgFileContent = {}
+          # cache recursiv ignore statuses
+          # @cachedIgnoreStatuses = @getRepo().getRecursiveIgnoreStatuses()
           statusesDidChange = true
+        @getRepo().getStatus().then (statuses) =>
+          for {status, path} in statuses
+            slashedPath = @slashPath(path)
+            if @statuses[slashedPath] != status
+              @statuses[slashedPath] = status
+              statusesDidChange = true
 
-      if statusesDidChange then @emitter.emit 'did-change-statuses'
+          if statusesDidChange then @emitter.emit 'did-change-statuses'
