@@ -98,9 +98,9 @@ class Repository
         prompt = data.trim() unless err
         fs.readFile bookmarkFile, 'utf8', (err, data) =>
           prompt += ':' + data.trim() unless err
-          @getHgTagsAsync().then (tags) =>
+          @getHgTagsAsync().then (tags) ->
             prompt += ':' + tags.join(',') if tags?.length
-          .then () => # Finally
+          .then () -> # Finally
             resolve prompt
 
 
