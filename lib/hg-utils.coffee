@@ -45,7 +45,9 @@ class Repository
   urlPath: null
 
   revision: null
-
+  diffRevisionProvider: () ->
+    return atom.config.get('atom-hg.diffAgainstRevision') if atom?
+    return '.'
 
   ###
   Section: Initialization and startup checks
@@ -323,7 +325,9 @@ class Repository
       return null
 
   getRecursiveIgnoreStatuses: () ->
-    @hgCommandAsync(['status', @rootPath, "-i"]).then (files) =>
+    revision = @diffRevisionProvider()
+    @hgCommandAsync(['status', @rootPath, "-i", "--rev", revision])
+    .then (files) =>
       items = []
       entries = files.split('\n')
       if entries
@@ -340,7 +344,8 @@ class Repository
       []
 
   getHgStatusAsync: () ->
-    @hgCommandAsync(['status', @rootPath]).then (files) =>
+    revision = @diffRevisionProvider()
+    @hgCommandAsync(['status', @rootPath, '--rev', revision]).then (files) =>
       items = []
       entries = files.split('\n')
       if entries
@@ -378,7 +383,8 @@ class Repository
     return null unless hgPath
 
     try
-      files = @hgCommand(['status', hgPath])
+      revision = @diffRevisionProvider()
+      files = @hgCommand(['status', hgPath, '--rev', revision])
     catch error
       @handleHgError(error)
       return null
@@ -427,14 +433,15 @@ class Repository
 
     return statusBitmask
 
-  # This retrieves the contents of the hgpath from the `HEAD` on success.
+  # This retrieves the contents of the hgpath from the diff revision on success.
   # Otherwise null.
   #
   # * `hgPath` The path {String}
   #
   # Returns {Promise} of a {String} with the filecontent
   getHgCatAsync: (hgPath) ->
-    params = ['cat', hgPath]
+    revision = @diffRevisionProvider()
+    params = ['cat', hgPath, '--rev', revision]
     return @hgCommandAsync(params).catch (error) =>
       if /no such file in rev/.test(error)
         return null
