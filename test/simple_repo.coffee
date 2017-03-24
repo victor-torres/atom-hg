@@ -156,8 +156,8 @@ describe 'In a repo with a custom revision diff provider', ->
 
     repo.onDidChangeStatuses () ->
       expected =
-        added: 1
-        deleted: 8
+        added: 9
+        deleted: 0
       assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
       done()
 

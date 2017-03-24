@@ -9,14 +9,14 @@ set-location $args[0]
 new-item -type File "untracked_file"
 new-item -type File "ignored_file"
 
-Set-Content -Path "modified_file" -Value @"
-
-
-
-
-
-
-"@
+Set-Content -Path "modified_file" -Value @"1
+2
+3
+4
+5
+6
+7
+8"@
 hg commit -m "Commit 1 without ignore" -u "Tester <test@test.com>"
 
 Set-Content -Path ".hgignore" -Value @"
