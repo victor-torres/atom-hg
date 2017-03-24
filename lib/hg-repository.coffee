@@ -31,6 +31,7 @@ class HgRepository
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @repo = HgUtils.open(path)
+    @shortHead = null
 
     unless @repo?
       throw new Error("No Mercurial repository found searching path: #{path}")
@@ -172,7 +173,13 @@ class HgRepository
   #   for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
-  getShortHead: (path) -> @getRepo(path).getShortHead()
+  getShortHead: (path) ->
+    @getRepo(path).getShortHeadAsync().then (shortHead) =>
+      return if @shortHead == shortHead
+      @shortHead = shortHead
+      @emitter.emit 'did-change-statuses'
+    return @shortHead
+
 
   # Public: Is the given path a submodule in the repository?
   #
