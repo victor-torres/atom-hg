@@ -81,26 +81,13 @@ class Repository
   # Parses info from `hg info` and `hgversion` command and checks if repo infos have changed
   # since last check
   #
-  # Returns a {boolean} if repo infos have changed
-  checkRepositoryHasChanged: () ->
-    hasChanged = false
-    revision = @getHgWorkingCopyRevision()
-    if revision?
-      if revision != @revision
+  # Returns a {Promise} of a {boolean} if repo infos have changed
+  checkRepositoryHasChangedAsync: () =>
+    return @getHgWorkingCopyRevisionAsync().then (revision) =>
+      if revision? and revision != @revision
         @revision = revision
-        hasChanged = true
-
-    # info = @getHgInfo()
-    # if info? && info.url?
-    #   if info.url != @url
-    #     @url = info.url
-    #     urlParts = urlParser.parse(info.url)
-    #     @urlPath = urlParts.path
-    #     pathParts = @urlPath.split('/')
-    #     @shortHead = if pathParts.length > 0 then pathParts.pop() else ''
-    #     hasChanged = true
-
-    return hasChanged
+        return true
+      return false
 
   getShortHead: () ->
     branchFile = @rootPath + '/.hg/branch'
@@ -123,10 +110,10 @@ class Repository
 
   # Parses `hg status`. Gets initially called by hg-repository.refreshStatus()
   #
-  # Returns a {Array} array keys are paths, values are change constants. Or null
+  # Returns a {Promise} of an {Array} array keys are paths, values are change
+  # constants. Or null
   getStatus: () ->
-    statuses = @getHgStatus()
-    return statuses
+    return @getHgStatusAsync()
 
   # Parses `hg status`. Gets called by hg-repository.refreshStatus()
   #
@@ -262,7 +249,8 @@ class Repository
     if !util.isArray(params)
       params = [params]
 
-    return '' unless @isCommandForRepo(params)
+    if !@isCommandForRepo(params)
+      return ''
 
     child = spawnSync('hg', params, { cwd: @rootPath })
     if child.status != 0
@@ -273,6 +261,7 @@ class Repository
         throw new Error(child.stdout.toString())
 
       throw new Error('Error trying to execute Mercurial binary with params \'' + params + '\'')
+
     return child.stdout.toString()
 
   hgCommandAsync: (params) ->
@@ -281,7 +270,8 @@ class Repository
     if !util.isArray(params)
       params = [params]
 
-    return Promise.resolve('') unless @isCommandForRepo(params)
+    if !@isCommandForRepo(params)
+      return Promise.resolve('')
 
     flatArgs = params.reduce (prev, next) ->
       if next.indexOf? and next.indexOf(' ') != -1
@@ -291,7 +281,7 @@ class Repository
     , ""
     flatArgs = flatArgs.substring(1)
 
-    new Promise (resolve, reject) =>
+    return new Promise (resolve, reject) =>
       opts =
         cwd: @rootPath
         maxBuffer: 50 * 1024 * 1024
@@ -325,11 +315,9 @@ class Repository
 
   # Returns on success the current working copy revision. Otherwise null.
   #
-  # Returns a {String} with the current working copy revision
-  getHgWorkingCopyRevision: () ->
-    try
-      return @hgCommand(['id', '-i', @rootPath])
-    catch error
+  # Returns a {Promise} of a {String} with the current working copy revision
+  getHgWorkingCopyRevisionAsync: () =>
+    @hgCommandAsync(['id', '-i', @rootPath]).catch (error) =>
       @handleHgError(error)
       return null
 
@@ -350,31 +338,25 @@ class Repository
       @handleHgError error
       []
 
-  # Returns on success an hg-status array. Otherwise null.
-  # Array keys are paths, values {Number} representing the status
-  #
-  # Returns a {Array} with path and statusnumber
-  getHgStatus: () ->
-    try
-      files = @hgCommand(['status', @rootPath])
-    catch error
+  getHgStatusAsync: () ->
+    @hgCommandAsync(['status', @rootPath]).then (files) =>
+      items = []
+      entries = files.split('\n')
+      if entries
+        for entry in entries
+          parts = entry.split(' ')
+          status = parts[0]
+          pathPart = parts[1]
+          if pathPart? && status?
+            items.push({
+              'path': path.join @rootPath, pathPart
+              'status': @mapHgStatus(status)
+            })
+
+      return items
+    .catch (error) =>
       @handleHgError(error)
       return null
-
-    items = []
-    entries = files.split('\n')
-    if entries
-      for entry in entries
-        parts = entry.split(' ')
-        status = parts[0]
-        pathPart = parts[1]
-        if pathPart? && status?
-          items.push({
-            'path': path.join @rootPath, pathPart
-            'status': @mapHgStatus(status)
-          })
-
-    return items
 
   # Returns on success a status bitmask. Otherwise null.
   #
@@ -439,17 +421,14 @@ class Repository
   #
   # * `hgPath` The path {String}
   #
-  # Returns the {String} as filecontent
-  getHgCat: (hgPath) ->
+  # Returns {Promise} of a {String} with the filecontent
+  getHgCatAsync: (hgPath) ->
     params = ['cat', hgPath]
-    try
-      fileContent = @hgCommand(params)
-      return fileContent
-    catch error
+    return @hgCommandAsync(params).catch (error) =>
       if /no such file in rev/.test(error)
         return null
 
-      @handleHgError(error)
+      @handleHgError error
       return null
 
   # This checks to see if the current params indicate whether we are working
