@@ -158,6 +158,7 @@ describe 'In a repo with a custom revision diff provider', ->
       expected =
         added: 9
         deleted: 0
+      console.log(repo.getDiffStats(modifiedFilePath), expected)
       assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
       done()
 
