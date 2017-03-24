@@ -1,7 +1,7 @@
 {
   "name": "atom-hg",
   "main": "./lib/atom-hg",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "description": "Mercurial support for Atom text editor.",
   "keywords": [
     "mercurial",
