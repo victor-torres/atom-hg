@@ -144,7 +144,8 @@ describe 'In a repo with a custom revision diff provider', ->
     testRepo.init()
 
   beforeEach ->
-    repo = new HgRepository testRepo.fullPath(), diffRevisionProvider: -> '.^'
+    repo = new HgRepository testRepo.fullPath(), diffRevisionProvider: ->
+      'commit1'
 
   it 'should be able to diff against a provided revision', (done) ->
     modifiedFilePath = path.join testRepo.fullPath(), 'modified_file'

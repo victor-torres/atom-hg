@@ -16,6 +16,7 @@ touch "ignored_file"
 echo -e "1\n2\n3\n4\n5\n6\n7\n8">"modified_file"
 
 hg commit -m "Commit 1 without ignore" -u "Tester <test@test.com>"
+hg tag -lf "commit1"
 
 echo -e "syntax:glob\nignored_file">".hgignore"
 hg add ".hgignore"

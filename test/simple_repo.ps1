@@ -20,6 +20,7 @@ Set-Content -Path "modified_file" -Value @"
 8
 "@
 hg commit -m "Commit 1 without ignore" -u "Tester <test@test.com>"
+hg tag -lf "commit1"
 
 Set-Content -Path ".hgignore" -Value @"
 syntax:glob
