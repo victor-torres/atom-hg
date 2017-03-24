@@ -14,6 +14,13 @@ describe 'In a repo with some ignored files', ->
   beforeEach ->
     repo = new HgRepository testRepo.fullPath()
 
+   it 'should show a short-head with tags and bookmarks', (done) ->
+     repo = new HgRepository testRepo.fullPath()
+     repo.onDidChangeStatuses ->
+       assert.equal(repo.shortHead, 'default:test-bookmark:test-tag,tip')
+       done()
+     repo.getShortHead(testRepo.fullPath())
+
   describe 'with an ignored file', ->
     ignored_file = path.join testRepo.fullPath(), 'ignored_file'
 

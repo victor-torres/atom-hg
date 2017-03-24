@@ -369,7 +369,8 @@ class Repository
   # Returns a {Primise} of an {Array} of {String}s representing the status
   getHgTagsAsync: () ->
     @hgCommandAsync(['id', '-t', @rootPath]).then (tags) ->
-      return tags.trim().split(' ')
+      tags = tags.trim()
+      return tags.split(' ').sort() if tags
     .catch (error) =>
       @handleHgError(error)
       return null

@@ -17,6 +17,8 @@ echo -e "syntax:glob\nignored_file">".hgignore"
 hg add ".hgignore"
 
 hg commit -m "Commit 1" -u "Tester <test@test.com>"
+hg bookmark "test-bookmark"
+hg tag -lf "test-tag"
 echo -e "Changes!">"modified_file"
 hg remove "removed_file"
 rm "missing_file"
