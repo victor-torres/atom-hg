@@ -28,7 +28,11 @@ module.exports =
 
       repo = @pathToRepository[repositoryPath]
       unless repo
-        repo = HgRepository.open(repositoryPath, project: @project)
+        repo = HgRepository.open repositoryPath,
+          project: @project
+          diffRevisionProvider: ->
+            atom.config.get('atom-hg.diffAgainstRevision')
+
         return null unless repo
 
         # TODO: takes first repository only

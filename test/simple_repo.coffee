@@ -21,6 +21,20 @@ describe 'In a repo with some ignored files', ->
        done()
      repo.getShortHead(testRepo.fullPath())
 
+  it 'should diff against "." by default', (done) ->
+    modifiedFilePath = path.join testRepo.fullPath(), 'modified_file'
+    expected =
+      added: 0
+      deleted: 0
+    assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
+
+    repo.onDidChangeStatuses () ->
+      expected =
+        added: 2
+        deleted: 0
+      assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
+      done()
+
   describe 'with an ignored file', ->
     ignored_file = path.join testRepo.fullPath(), 'ignored_file'
 
@@ -129,3 +143,31 @@ describe 'In a repo opened from a symbolic link', ->
 
   after ->
     testRepo.destroy()
+
+describe 'In a repo with a custom revision diff provider', ->
+  testRepo = new TestRepository path.parse(__filename).name
+  repo = null
+  before ->
+    testRepo.init()
+
+  beforeEach ->
+    repo = new HgRepository testRepo.fullPath(), diffRevisionProvider: ->
+      'commit1'
+
+  it 'should be able to diff against a provided revision', (done) ->
+    modifiedFilePath = path.join testRepo.fullPath(), 'modified_file'
+
+    expected =
+      added: 0
+      deleted: 0
+    assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
+
+    repo.onDidChangeStatuses () ->
+      expected =
+        added: 9
+        deleted: 0
+      assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
+      done()
+
+    after ->
+      testRepo.destroy()

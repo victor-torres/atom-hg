@@ -45,15 +45,13 @@ class Repository
   urlPath: null
 
   revision: null
-  diffRevisionProvider: () ->
-    return atom.config.get('atom-hg.diffAgainstRevision') if atom?
-    return '.'
+  diffRevisionProvider: null
 
   ###
   Section: Initialization and startup checks
   ###
 
-  constructor: (repoRootPath) ->
+  constructor: (repoRootPath, diffRevisionProvider) ->
     @rootPath = path.normalize(repoRootPath)
     unless fs.existsSync(@rootPath)
       return
@@ -62,6 +60,7 @@ class Repository
     unless lstat.isSymbolicLink()
       return
 
+    @diffRevisionProvider = diffRevisionProvider
     @rootPath = fs.realpathSync(@rootPath)
 
   # Checks if there is a hg binary in the os searchpath and returns the
@@ -488,31 +487,17 @@ exports.isStatusStaged = (status) ->
 # * `repositoryPath` The path {String} to the repository root directory
 #
 # Returns a new {Repository} object
-openRepository = (repositoryPath) ->
+openRepository = (repositoryPath, diffRevisionProvider) ->
   repository = new Repository(repositoryPath)
   if repository.checkBinaryAvailable() and repository.exists()
+    repository.diffRevisionProvider = diffRevisionProvider
     return repository
   else
     return null
 
 
-exports.open = (repositoryPath) ->
-  return openRepository(repositoryPath)
-
-
-openRepositoryAsync = (repositoryPath) ->
-  return new Promise((resolve, reject) ->
-    repository = new Repository(repositoryPath)
-    if repository.checkBinaryAvailable()
-      resolve(repository)
-    else
-      reject(null)
-  )
-
-
-exports.openAsync = (repositoryPath) ->
-  return openRepositoryAsync(repositoryPath).then((repo) ->
-    return repo)
+exports.open = (repositoryPath, diffRevisionProvider) ->
+  return openRepository(repositoryPath, diffRevisionProvider)
 
 # Verifies if given path is a symbolic link.
 # Returns original path or null otherwise.
