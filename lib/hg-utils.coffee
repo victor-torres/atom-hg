@@ -43,7 +43,7 @@ class Repository
 
   url: null
   urlPath: null
-  shortHead: null
+  hgTags: null
 
   revision: null
 
@@ -89,18 +89,20 @@ class Repository
         return true
       return false
 
-  getShortHead: () ->
+  getShortHead: (emitter) =>
     branchFile = @rootPath + '/.hg/branch'
     bookmarkFile = @rootPath + '/.hg/bookmarks.current'
-    prompt = ''
+    prompt = 'default'
 
-    if (!fs.existsSync(branchFile))
-      prompt = 'default'
-    else
+    if fs.existsSync(branchFile)
       prompt = fs.readFileSync branchFile, 'utf8'
+    if fs.existsSync(bookmarkFile)
+      prompt += ':' + fs.readFileSync bookmarkFile, 'utf8'
+    if @hgTags
+      prompt += ':' + @hgTags
 
-    if (fs.existsSync(bookmarkFile))
-      prompt = prompt + ':' + fs.readFileSync bookmarkFile, 'utf8'
+    @getHgTagsAsync().then (tags) =>
+      @hgTags = tags.join(',')
 
     return prompt
 
@@ -354,6 +356,16 @@ class Repository
             })
 
       return items
+    .catch (error) =>
+      @handleHgError(error)
+      return null
+
+  # Returns on success the list of tags for this revision. Otherwise null.
+  #
+  # Returns a {Primise} of an {Array} of {String}s representing the status
+  getHgTagsAsync: () ->
+    @hgCommandAsync(['id', '-t', @rootPath]).then (tags) ->
+      return tags.split(' ')
     .catch (error) =>
       @handleHgError(error)
       return null

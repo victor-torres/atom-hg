@@ -172,7 +172,7 @@ class HgRepository
   #   for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
-  getShortHead: (path) -> @getRepo(path).getShortHead()
+  getShortHead: (path) -> @getRepo(path).getShortHead(@emitter)
 
   # Public: Is the given path a submodule in the repository?
   #
