@@ -43,7 +43,6 @@ class Repository
 
   url: null
   urlPath: null
-  hgTags: null
 
   revision: null
 
@@ -89,22 +88,22 @@ class Repository
         return true
       return false
 
-  getShortHead: (emitter) =>
-    branchFile = @rootPath + '/.hg/branch'
-    bookmarkFile = @rootPath + '/.hg/bookmarks.current'
-    prompt = 'default'
+  getShortHeadAsync: () =>
+    return new Promise (resolve) =>
+      branchFile = @rootPath + '/.hg/branch'
+      bookmarkFile = @rootPath + '/.hg/bookmarks.current'
+      prompt = 'default'
 
-    if fs.existsSync(branchFile)
-      prompt = fs.readFileSync branchFile, 'utf8'
-    if fs.existsSync(bookmarkFile)
-      prompt += ':' + fs.readFileSync bookmarkFile, 'utf8'
-    if @hgTags
-      prompt += ':' + @hgTags
+      fs.readFile branchFile, 'utf8', (err, data) =>
+        prompt = data.trim() unless err
+        fs.readFile bookmarkFile, 'utf8', (err, data) =>
+          prompt += ':' + data.trim() unless err
+          @getHgTagsAsync().then (tags) =>
+            prompt += ':' + tags.join(',') if tags?.length
+          .then () => # Finally
+            resolve prompt
 
-    @getHgTagsAsync().then (tags) =>
-      @hgTags = tags.join(',')
 
-    return prompt
 
   ###
   Section: TreeView Path Mercurial status
@@ -365,7 +364,7 @@ class Repository
   # Returns a {Primise} of an {Array} of {String}s representing the status
   getHgTagsAsync: () ->
     @hgCommandAsync(['id', '-t', @rootPath]).then (tags) ->
-      return tags.split(' ')
+      return tags.trim().split(' ')
     .catch (error) =>
       @handleHgError(error)
       return null
