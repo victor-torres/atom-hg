@@ -45,13 +45,13 @@ class Repository
   urlPath: null
 
   revision: null
-
+  diffRevisionProvider: null
 
   ###
   Section: Initialization and startup checks
   ###
 
-  constructor: (repoRootPath) ->
+  constructor: (repoRootPath, diffRevisionProvider) ->
     @rootPath = path.normalize(repoRootPath)
     unless fs.existsSync(@rootPath)
       return
@@ -60,6 +60,7 @@ class Repository
     unless lstat.isSymbolicLink()
       return
 
+    @diffRevisionProvider = diffRevisionProvider
     @rootPath = fs.realpathSync(@rootPath)
 
   # Checks if there is a hg binary in the os searchpath and returns the
@@ -323,7 +324,9 @@ class Repository
       return null
 
   getRecursiveIgnoreStatuses: () ->
-    @hgCommandAsync(['status', @rootPath, "-i"]).then (files) =>
+    revision = @diffRevisionProvider()
+    @hgCommandAsync(['status', @rootPath, "-i", "--rev", revision])
+    .then (files) =>
       items = []
       entries = files.split('\n')
       if entries
@@ -340,7 +343,8 @@ class Repository
       []
 
   getHgStatusAsync: () ->
-    @hgCommandAsync(['status', @rootPath]).then (files) =>
+    revision = @diffRevisionProvider()
+    @hgCommandAsync(['status', @rootPath, '--rev', revision]).then (files) =>
       items = []
       entries = files.split('\n')
       if entries
@@ -378,7 +382,8 @@ class Repository
     return null unless hgPath
 
     try
-      files = @hgCommand(['status', hgPath])
+      revision = @diffRevisionProvider()
+      files = @hgCommand(['status', hgPath, '--rev', revision])
     catch error
       @handleHgError(error)
       return null
@@ -427,14 +432,15 @@ class Repository
 
     return statusBitmask
 
-  # This retrieves the contents of the hgpath from the `HEAD` on success.
+  # This retrieves the contents of the hgpath from the diff revision on success.
   # Otherwise null.
   #
   # * `hgPath` The path {String}
   #
   # Returns {Promise} of a {String} with the filecontent
   getHgCatAsync: (hgPath) ->
-    params = ['cat', hgPath]
+    revision = @diffRevisionProvider()
+    params = ['cat', hgPath, '--rev', revision]
     return @hgCommandAsync(params).catch (error) =>
       if /no such file in rev/.test(error)
         return null
@@ -480,31 +486,17 @@ exports.isStatusStaged = (status) ->
 # * `repositoryPath` The path {String} to the repository root directory
 #
 # Returns a new {Repository} object
-openRepository = (repositoryPath) ->
+openRepository = (repositoryPath, diffRevisionProvider) ->
   repository = new Repository(repositoryPath)
   if repository.checkBinaryAvailable() and repository.exists()
+    repository.diffRevisionProvider = diffRevisionProvider
     return repository
   else
     return null
 
 
-exports.open = (repositoryPath) ->
-  return openRepository(repositoryPath)
-
-
-openRepositoryAsync = (repositoryPath) ->
-  return new Promise((resolve, reject) ->
-    repository = new Repository(repositoryPath)
-    if repository.checkBinaryAvailable()
-      resolve(repository)
-    else
-      reject(null)
-  )
-
-
-exports.openAsync = (repositoryPath) ->
-  return openRepositoryAsync(repositoryPath).then((repo) ->
-    return repo)
+exports.open = (repositoryPath, diffRevisionProvider) ->
+  return openRepository(repositoryPath, diffRevisionProvider)
 
 # Verifies if given path is a symbolic link.
 # Returns original path or null otherwise.

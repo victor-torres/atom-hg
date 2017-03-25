@@ -13,10 +13,17 @@ done
 touch "untracked_file"
 touch "ignored_file"
 
+echo -e "1\n2\n3\n4\n5\n6\n7\n8">"modified_file"
+
+hg commit -m "Commit 1 without ignore" -u "Tester <test@test.com>"
+hg tag -lf "commit1"
+
 echo -e "syntax:glob\nignored_file">".hgignore"
 hg add ".hgignore"
 
-hg commit -m "Commit 1" -u "Tester <test@test.com>"
+echo -e "Some text.">"modified_file"
+
+hg commit -m "Commit 2 with ignore" -u "Tester <test@test.com>"
 echo -e "Changes!">"modified_file"
 hg remove "removed_file"
 rm "missing_file"

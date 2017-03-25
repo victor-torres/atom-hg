@@ -18,9 +18,11 @@ class HgRepository
   # * `options` An optional {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   #     statuses when the window is focused.
+  #   * `diffRevisionProvider` a {Function} that provides the revision to diff
+  #      against. Defaults to '.'.
   #
   # Returns a {HgRepository} instance or `null` if the repository could not be opened.
-  @open: (path, options) ->
+  @open: (path, options={}) ->
     return null unless path
     try
       new HgRepository(path, options)
@@ -28,9 +30,12 @@ class HgRepository
       null
 
   constructor: (path, options={}) ->
+    {@project, refreshOnWindowFocus, diffRevisionProvider} = options
+    diffRevisionProvider ?= -> '.'
+
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
-    @repo = HgUtils.open(path)
+    @repo = HgUtils.open(path, diffRevisionProvider)
     @shortHead = null
 
     unless @repo?
@@ -44,8 +49,6 @@ class HgRepository
 
     @cachedIgnoreStatuses = []
     @cachedHgFileContent = {}
-
-    {@project, refreshOnWindowFocus} = options
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
