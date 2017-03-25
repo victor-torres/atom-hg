@@ -28,7 +28,7 @@ describe 'In a repo with some ignored files', ->
       deleted: 0
     assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
 
-    repo.onDidChangeStatuses () ->
+    repo.onDidChangeStatus ->
       expected =
         added: 2
         deleted: 0
@@ -162,12 +162,12 @@ describe 'In a repo with a custom revision diff provider', ->
       deleted: 0
     assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
 
-    repo.onDidChangeStatuses () ->
+    repo.onDidChangeStatus ->
       expected =
         added: 9
         deleted: 0
       assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
       done()
 
-    after ->
-      testRepo.destroy()
+  after ->
+    testRepo.destroy()
