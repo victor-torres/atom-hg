@@ -14,6 +14,13 @@ describe 'In a repo with some ignored files', ->
   beforeEach ->
     repo = new HgRepository testRepo.fullPath()
 
+   it 'should show a short-head with tags and bookmarks', (done) ->
+     repo = new HgRepository testRepo.fullPath()
+     repo.onDidChangeStatuses ->
+       assert.equal(repo.shortHead, 'default:test-bookmark:test-tag,tip')
+       done()
+     repo.getShortHead(testRepo.fullPath())
+
   it 'should diff against "." by default', (done) ->
     modifiedFilePath = path.join testRepo.fullPath(), 'modified_file'
     expected =
@@ -21,7 +28,7 @@ describe 'In a repo with some ignored files', ->
       deleted: 0
     assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
 
-    repo.onDidChangeStatuses () ->
+    repo.onDidChangeStatus ->
       expected =
         added: 2
         deleted: 0
@@ -155,12 +162,12 @@ describe 'In a repo with a custom revision diff provider', ->
       deleted: 0
     assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
 
-    repo.onDidChangeStatuses () ->
+    repo.onDidChangeStatus ->
       expected =
         added: 9
         deleted: 0
       assert.deepEqual(repo.getDiffStats(modifiedFilePath), expected)
       done()
 
-    after ->
-      testRepo.destroy()
+  after ->
+    testRepo.destroy()

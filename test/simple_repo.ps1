@@ -31,6 +31,9 @@ hg add ".hgignore"
 Set-Content -Path "modified_file" -Value "Some text."
 
 hg commit -m "Commit 2 with ignore" -u "Tester <test@test.com>"
+hg bookmark "test-bookmark"
+hg tag -lf "test-tag"
+
 Set-Content -Path "modified_file" -Value "Changes!"
 hg remove "removed_file"
 Remove-Item "missing_file"

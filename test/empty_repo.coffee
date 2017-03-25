@@ -19,5 +19,12 @@ describe 'Constructing hg-repository', ->
     repo = new HgRepository testRepo.fullPath()
     assert.ok repo
 
+  it 'should show "default:tip" as the short-head', (done) ->
+    repo = new HgRepository testRepo.fullPath()
+    repo.onDidChangeStatuses ->
+      assert.equal(repo.shortHead, 'default:tip')
+      done()
+    repo.getShortHead(testRepo.fullPath())
+
   after ->
     testRepo.destroy()

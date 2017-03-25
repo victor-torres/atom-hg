@@ -333,13 +333,12 @@ class HgRepository
   getCachedHgFileContent: (path) =>
     slashedPath = @slashPath(path)
 
-    @repo.getHgCatAsync(path).then (contents) =>
-      statusesDidChange = @cachedHgFileContent[slashedPath] != contents
-      @cachedHgFileContent[slashedPath] = contents
-      if statusesDidChange then @emitter.emit 'did-change-statuses'
-
     if (!@cachedHgFileContent[slashedPath])
-      return null
+      @repo.getHgCatAsync(path).then (contents) =>
+        contentsChanged = @cachedHgFileContent[slashedPath] != contents
+        @cachedHgFileContent[slashedPath] = contents
+        @getPathStatus path if contentsChanged
+
     return @cachedHgFileContent[slashedPath]
 
   # Public: Retrieves the number of lines added and removed to a path.

@@ -24,6 +24,9 @@ hg add ".hgignore"
 echo -e "Some text.">"modified_file"
 
 hg commit -m "Commit 2 with ignore" -u "Tester <test@test.com>"
+hg bookmark "test-bookmark"
+hg tag -lf "test-tag"
+
 echo -e "Changes!">"modified_file"
 hg remove "removed_file"
 rm "missing_file"
