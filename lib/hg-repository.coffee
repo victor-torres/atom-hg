@@ -222,6 +222,12 @@ class HgRepository
   #   for, only needed if the repository has submodules.
   getOriginUrl: (path) -> null
 
+  # Public: Returns the origin url of the repository.
+  #
+  # * `path` (optional) {String} path in the repository to get this information
+  #   for, only needed if the repository has submodules.
+  getOriginURL: (path) -> null
+
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
