@@ -30,7 +30,8 @@ suppressHgWarnings = [
 ]
 
 class Repository
-
+  isWindows = process.platform == 'win32'
+  windowsMaxPathLength = 260
   username: null
   password: null
 
@@ -291,7 +292,10 @@ class Repository
         if err
           reject err
         if stderr?.length > 0
-          reject stderr
+          if isWindows and stderr.length > windowsMaxPathLength
+            resolve(stdout)
+          else
+            reject new Error(stderr)
         resolve stdout
 
   handleHgError: (error) ->
